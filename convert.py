@@ -52,6 +52,8 @@ def convert(
         addressbook = vobject.readComponents(data)
 
         while (entry := next(addressbook, None)) is not None:
+            if "fn" not in entry.contents:
+                continue
             name = entry.contents["fn"][0].value
             if "bday" in entry.contents:
                 birthday_string = entry.contents["bday"][0].value
