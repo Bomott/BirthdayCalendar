@@ -73,8 +73,16 @@ def convert(
                     ).date()
                     print(birthday_object)
                     age = date.today().year - birthday_object.year
+                elif re.match(r'--\d{2}\d{2}', birthday_string):
+                    birthday_object = datetime.strptime(birthday_string, "--%m%d").date()
+                    birthday_object = birthday_object.replace(year=date.today().year)
+                    print(
+                        f"Fixed date without year: {birthday_string} -> {birthday_object}"
+                    )
+                    age = None
+
                 else:
-                    raise Exception("Date {birthday_string} not implemented")
+                    raise Exception(f"Date {birthday_string} not implemented")
 
                 event = generate_birthday_event(
                     name=name,
