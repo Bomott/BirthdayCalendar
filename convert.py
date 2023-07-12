@@ -1,6 +1,8 @@
 """Contacts to birthday calendar converter."""
+import argparse
 from datetime import datetime, date
 from icalendar import Calendar, Event
+import re
 import vobject
 
 
@@ -98,4 +100,11 @@ def convert(
 
 
 if __name__ == "__main__":
-    convert(input_vcf_file_path="export.vcf", output_ics_file_path="birthdays.ics")
+    parser = argparse.ArgumentParser(prog='Birthday Calendar Converter', description='Converts a .vcf contacts file from Proton Mail to a birthday calendar .ics that can be imported into Proton Calendar.')
+    parser.add_argument('input', type=str, help='Path to the contacts (.vcf) file.')
+    parser.add_argument('output', type=str, help='Path to the output (.ics) file.')
+    parser.add_argument('--title', type=str, help="Text that will be added to the name in the event title. Defaults to 'Geburtstag'.", default='Geburtstag')
+
+    args = parser.parse_args()
+
+    convert(input_vcf_file_path=args.input, output_ics_file_path=args.output, event_title=args.title)
