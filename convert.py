@@ -1,6 +1,8 @@
 """Contacts to birthday calendar converter."""
+import argparse
 from datetime import datetime, date
 from icalendar import Calendar, Event
+import re
 import vobject
 
 
@@ -52,6 +54,8 @@ def convert(
         addressbook = vobject.readComponents(data)
 
         while (entry := next(addressbook, None)) is not None:
+            if "fn" not in entry.contents:
+                continue
             name = entry.contents["fn"][0].value
             if "bday" in entry.contents:
                 birthday_string = entry.contents["bday"][0].value
@@ -71,8 +75,16 @@ def convert(
                     ).date()
                     print(birthday_object)
                     age = date.today().year - birthday_object.year
+                elif re.match(r'--\d{2}\d{2}', birthday_string):
+                    birthday_object = datetime.strptime(birthday_string, "--%m%d").date()
+                    birthday_object = birthday_object.replace(year=date.today().year)
+                    print(
+                        f"Fixed date without year: {birthday_string} -> {birthday_object}"
+                    )
+                    age = None
+
                 else:
-                    raise Exception("Date {birthday_string} not implemented")
+                    raise Exception(f"Date {birthday_string} not implemented")
 
                 event = generate_birthday_event(
                     name=name,
@@ -88,4 +100,11 @@ def convert(
 
 
 if __name__ == "__main__":
-    convert(input_vcf_file_path="export.vcf", output_ics_file_path="birthdays.ics")
+    parser = argparse.ArgumentParser(prog='Birthday Calendar Converter', description='Converts a .vcf contacts file from Proton Mail to a birthday calendar .ics that can be imported into Proton Calendar.')
+    parser.add_argument('input', type=str, help='Path to the contacts (.vcf) file.')
+    parser.add_argument('output', type=str, help='Path to the output (.ics) file.')
+    parser.add_argument('--title', type=str, help="Text that will be added to the name in the event title. Defaults to 'Geburtstag'.", default='Geburtstag')
+
+    args = parser.parse_args()
+
+    convert(input_vcf_file_path=args.input, output_ics_file_path=args.output, event_title=args.title)
